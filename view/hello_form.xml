@@ -1,0 +1,5 @@
+<data>
+    <xpath expr="/form/field[@name='name']" position="after">
+      <button string="Capitalise" name="capitalise" colspan="4"/>
+    </xpath>
+</data>
