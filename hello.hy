@@ -1,13 +1,14 @@
 (import [trytond.pool [PoolMeta]])
 (import [trytond.model [fields ModelView]])
-(def --all-- ["Hello"])
+(import [trytond.exceptions [UserError UserWarning]])
+(import [trytond.i18n [gettext]])
+
+(setv --all-- ["Hello"])
 
 
-(defclass Hello []
+(defclass Hello [:metaclass PoolMeta]
   "Hello Code"
-  [--name-- "hello"
-   --metaclass-- PoolMeta
-   ]
+  [--name-- "hello"]
 
   (with-decorator classmethod
     (defn --setup-- [cls]
@@ -15,11 +16,6 @@
       (.update cls._buttons
                {"capitalise"
                 {}})
-      (.update cls._error_messages
-               {"name_capitalized_alerady_message" "Record with name '%(name)s' already capitalzed."
-                "delete_hello_message" "REALLY??? delete?"
-                "not_empty_surname_message" "Surnamer cannot be empty for '%(name)s"}
-               )
       ))
 
   
@@ -27,9 +23,10 @@
     (defn capitalise [cls records]
       (for [r records] (do
                          (if (= r.name (.capitalize r.name))
-                           (.raise_user_error cls
-                                              "name_capitalized_alerady_message"
-                                              {"name" r.name}
+                             (raise (UserError
+                                      (gettext 
+                                        "hello_button.name_capitalized_alerady_message"
+                                        :name r.name))
                                               )
                            (setv r.name (.capitalize r.name))
                            )))
@@ -38,7 +35,7 @@
 
   (with-decorator classmethod
     (defn delete [cls records]
-      (.raise_user_warning cls "ask-again-id"  "delete_hello_message" {})
+      (raise (UserWarning "ask-again-id"  (gettext "hello_button.delete_hello_message")))
       (.delete (super Hello cls) records)
       ))
 
@@ -47,9 +44,9 @@
       (.validate (super Hello cls) records)
       (for [r records] (do
                          (when (not r.surname)
-                           (.raise_user_error cls
-                                              "not_empty_surname_message"
-                                              {"name" r.name})
+                           (raise (UserError
+                                    "hello_button.not_empty_surname_message"
+                                    :name r.name))
                            )))
       ))
   
